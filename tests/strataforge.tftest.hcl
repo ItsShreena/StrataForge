@@ -18,3 +18,27 @@ run "verify_both_environments" {
     error_message = "Both dev and prod configuration paths must be present."
   }
 }
+
+run "reject_invalid_environment" {
+  command = plan
+
+  variables {
+    environment = "staging"
+  }
+
+  expect_failures = [
+    var.environment
+  ]
+}
+
+run "reject_invalid_replica_count" {
+  command = plan
+
+  variables {
+    replicas = 0
+  }
+
+  expect_failures = [
+    var.replicas
+  ]
+}
