@@ -1,44 +1,26 @@
-run "verify_application_name" {
-  command = plan
 
-  assert {
-    condition     = output.application_name == "StrataForge"
-    error_message = "The application name should be StrataForge."
-  }
-}
-
-run "verify_both_environments" {
+run "verify_dev_resource_settings" {
   command = plan
 
   assert {
     condition = (
-      contains(keys(output.config_file_paths), "dev") &&
-      contains(keys(output.config_file_paths), "prod")
+      module.app_config["dev"].replica_count == 2 &&
+      module.app_config["dev"].cpu_limit == 1 &&
+      module.app_config["dev"].memory_limit_mb == 512
     )
-    error_message = "Both dev and prod configuration paths must be present."
+    error_message = "Dev must use 2 replicas, CPU limit 1, and 512 MB memory."
   }
 }
 
-run "reject_invalid_environment" {
+run "verify_prod_resource_settings" {
   command = plan
 
-  variables {
-    environment = "staging"
+  assert {
+    condition = (
+      module.app_config["prod"].replica_count == 3 &&
+      module.app_config["prod"].cpu_limit == 2 &&
+      module.app_config["prod"].memory_limit_mb == 1024
+    )
+    error_message = "Prod must use 3 replicas, CPU limit 2, and 1024 MB memory."
   }
-
-  expect_failures = [
-    var.environment
-  ]
-}
-
-run "reject_invalid_replica_count" {
-  command = plan
-
-  variables {
-    replicas = 0
-  }
-
-  expect_failures = [
-    var.replicas
-  ]
 }

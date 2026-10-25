@@ -61,3 +61,17 @@ output "config_file_path" {
   description = "Path of the generated application configuration"
   value       = local_file.app_config.filename
 }
+output "replica_count" {
+  description = "Configured number of application replicas"
+  value       = var.replicas
+}
+
+output "cpu_limit" {
+  description = "Configured CPU limit per instance"
+  value       = var.cpu_limit
+}
+
+output "memory_limit_mb" {
+  description = "Configured memory limit per instance in MB"
+  value       = var.memory_limit_mb
+}
