@@ -1,64 +1,93 @@
 # StrataForge
-### Reproducible Infrastructure. Safer Deployments.
 
-StrataForge is a Terraform-based infrastructure automation project that demonstrates modular infrastructure configuration, environment separation, input validation, reusable modules, and automated checks with GitHub Actions.
+### Infrastructure Automation Platform
 
-The project currently uses Terraform's **local provider** to generate development and production application configuration files. It runs locally without requiring an AWS account or paid cloud resources.
+**Reproducible Infrastructure. Safer Deployments.**
+
+StrataForge is a Terraform-based Infrastructure as Code (IaC) project that demonstrates modular configuration management, environment-specific settings, input validation, automated testing, and CI security checks.
+
+It generates consistent application configuration files for development and production environments using Terraform's local provider, without requiring paid cloud resources.
 
 ## Features
 
-- **Multi-environment configuration:** Generate separate development and production configurations.
-- **Reusable Terraform module:** Keep application configuration logic inside `modules/app-config`.
-- **Infrastructure as Code:** Define desired configurations declaratively using HCL.
-- **Input validation:** Validate supported environment names and replica-count limits.
-- **Structured outputs:** Display the generated configuration file paths.
-- **CI validation:** Run Terraform formatting, initialization, and validation checks through GitHub Actions.
-- **Cost-free local execution:** Experiment without provisioning cloud infrastructure.
+- **Modular architecture:** Reusable Terraform module for application configuration.
+- **Environment separation:** Independent development and production configurations.
+- **Input validation:** Validates environment names, replica counts, CPU and memory settings, application ports, and health-check paths.
+- **Dynamic configuration:** Uses `for_each` to manage multiple environments.
+- **JSON generation:** Uses `jsonencode` to generate structured configuration files.
+- **Terraform outputs:** Exposes configuration paths, application details, and deployment summaries.
+- **Automated tests:** Uses Terraform's native test framework to check outputs, environments, and configuration values.
+- **CI automation:** GitHub Actions runs formatting, initialization, validation, and Terraform tests.
+- **Security scanning:** Integrates Checkov to identify potential Terraform security issues.
 
 ## Architecture
 
 ```text
+StrataForge
+├── Terraform Root Configuration
+│   ├── Variables and Validation
+│   ├── Environment Iteration
+│   └── Outputs
+├── Reusable App Configuration Module
+│   ├── Development Configuration
+│   └── Production Configuration
+├── Generated JSON Files
+├── Terraform Tests
+└── GitHub Actions CI Workflow
+```
+
+## Development and Production
+
+| Setting | Development | Production |
+|---|---:|---:|
+| Replicas | 2 | 3 |
+| CPU limit value | 1 | 2 |
+| Memory value | 512 MB | 1024 MB |
+| Application port | 8080 | 8080 |
+| Health-check path | `/health` | `/health` |
+
+**Note:** CPU and memory values are configuration metadata in this project; they do not represent resources actually provisioned or enforced by a cloud platform.
+
+## Tech Stack
+
+- Terraform
+- HCL
+- JSON
+- HashiCorp Local Provider
+- Git and GitHub
+- GitHub Actions
+- Checkov
+
+## Project Structure
+
+```text
 StrataForge/
-├── .github/
-│   └── workflows/
-│       └── terraform-checks.yml
+├── .github/workflows/
+│   └── terraform-checks.yml
 ├── environments/
 │   ├── dev.tfvars
 │   └── prod.tfvars
 ├── modules/
 │   └── app-config/
 │       └── main.tf
+├── tests/
+│   └── strataforge.tftest.hcl
+├── .gitignore
 ├── main.tf
+├── outputs.tf
 ├── providers.tf
 ├── variables.tf
-├── outputs.tf
 ├── versions.tf
-├── terraform.tfvars.example
-└── .gitignore
+└── README.md
 ```
-
-## How it works
-
-1. Terraform loads the root configuration.
-2. The root module calls the reusable `app-config` module for both environments.
-3. The module generates a JSON configuration file for each environment.
-4. Terraform outputs the resulting file paths.
-5. GitHub Actions checks formatting and configuration validity on pushes to `main` and pull requests.
-
-Expected generated files:
-
-- `generated-dev-app-config.json`
-- `generated-prod-app-config.json`
-
-These generated files and Terraform state files are excluded from Git through `.gitignore`.
 
 ## Prerequisites
 
-- [Terraform](https://developer.hashicorp.com/terraform/install) 1.5.0 or newer
-- [Git](https://git-scm.com/downloads)
-- PowerShell, Command Prompt, or a terminal
+- Terraform CLI 1.17.0, or a compatible version satisfying the project's version constraint
+- Git
+- PowerShell, Bash, or another terminal
 
-## Getting started
+## Getting Started
 
 Clone the repository:
 
@@ -73,87 +102,62 @@ Initialize Terraform:
 terraform init
 ```
 
-Check formatting and validate the configuration:
+Format and validate the configuration:
 
 ```bash
-terraform fmt -check -recursive
+terraform fmt -recursive
 terraform validate
 ```
 
-Preview the changes:
+Run automated tests:
+
+```bash
+terraform test
+```
+
+Preview changes:
 
 ```bash
 terraform plan
 ```
 
-Generate both environment configurations:
+Generate the development and production configuration files:
 
 ```bash
 terraform apply
 ```
 
-Review the plan and type `yes` when Terraform asks for approval.
+Review the proposed changes and type `yes` when prompted.
 
-Inspect the generated files:
-
-```bash
-Get-Content .\generated-dev-app-config.json
-Get-Content .\generated-prod-app-config.json
-```
-
-View Terraform outputs:
+Inspect the outputs:
 
 ```bash
 terraform output
+terraform output deployment_summary
 ```
 
-## Example configuration
+The generated files are `generated-dev-app-config.json` and `generated-prod-app-config.json`. They are local outputs and are excluded from Git tracking.
 
-Development:
+## Continuous Integration
 
-```json
-{
-  "application": "StrataForge",
-  "environment": "dev",
-  "replicas": 2
-}
-```
+The GitHub Actions workflow is designed to run on pushes to `main` and pull requests. It checks Terraform formatting, initializes the configuration, validates it, runs tests, and invokes Checkov.
 
-Production:
+Checkov is currently configured with `soft_fail: true`, so security findings may be reported without failing the workflow. Review findings rather than assuming that a successful workflow means every security check passed.
 
-```json
-{
-  "application": "StrataForge",
-  "environment": "prod",
-  "replicas": 3
-}
-```
+## Learning Outcomes
 
-## CI/CD
+This project demonstrates practical experience with:
 
-The GitHub Actions workflow in `.github/workflows/terraform-checks.yml` runs:
+- Infrastructure as Code principles
+- Terraform modules, variables, outputs, and `for_each`
+- Input validation and environment-specific configuration
+- Automated infrastructure configuration tests
+- CI workflows and security scanning
+- Git-based project versioning
 
-- Terraform formatting checks
-- Terraform initialization without configuring a backend
-- Terraform validation
+## Limitations and Future Improvements
 
-This provides an automated baseline for detecting formatting and configuration errors before changes are merged.
+StrataForge currently generates local application configuration files. It does not provision cloud infrastructure or deploy an application.
 
-## Technology stack
+Possible future extensions include cloud-provider modules, remote state management, secrets management, policy enforcement, and deployment integrations.
 
-- **Infrastructure as Code:** Terraform, HCL
-- **Provider:** HashiCorp Local
-- **Automation:** GitHub Actions, YAML
-- **Version control:** Git and GitHub
-- **Configuration format:** JSON
-
-## Roadmap
-
-- Add reusable environment-specific configuration patterns.
-- Introduce automated testing for Terraform modules.
-- Explore cloud-provider modules with cost-conscious deployment options.
-- Add security scanning and infrastructure policy checks.
-- Expand CI workflows with plan review and deployment safeguards.
----
-
-*StrataForge is an educational infrastructure automation project. Its current implementation generates local configuration files; it does not provision production cloud infrastructure.*
