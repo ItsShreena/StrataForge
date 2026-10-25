@@ -1,0 +1,24 @@
+
+# Terraform working files
+.terraform/
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Terraform crash logs
+crash.log
+crash.*.log
+
+# Generated application configuration
+generated-*-app-config.json
+
+# Local variable overrides
+terraform.tfvars
+*.auto.tfvars
+
+# Environment secrets
+.env
+.env.*
+!.env.example
